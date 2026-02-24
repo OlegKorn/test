@@ -1,0 +1,273 @@
+<think>
+Пользователю нужно создать HTML-страницу для работы с GREEN-API. Задание включает:
+
+1. Вызовы методов GREEN-API: getSettings, getStateInstance, sendMessage, sendFileByUrl
+2. Поля для ввода idInstance и ApiTokenInstance
+3. Вывод ответов методов в отдельное поле (только для чтения)
+4. Макет (рисунок, который я не вижу, но могу догадаться)
+
+Мне нужно создать HTML-страницу с:
+- Полями ввода для idInstance и ApiTokenInstance
+- Кнопками для вызова методов: getSettings, getStateInstance, sendMessage, sendFileByUrl
+- Полем вывода результата (только для чтения)
+- Возможно полями для ввода номера телефона и сообщения
+
+Для sendMessage нужно будет ввести номер телефона и текст сообщения
+Для sendFileByUrl нужно будет ввести URL файла и номер телефона
+
+Давайте создам простой и понятный интерфейс.
+</think>Понял! Создам для тебя HTML-страницу для работы с GREEN-API. Вот готовый код:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GREEN-API Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2ecc71;
+            text-align: center;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        .btn-primary { background: #2ecc71; color: white; }
+        .btn-primary:hover { background: #27ae60; }
+        .btn-secondary { background: #3498db; color: white; }
+        .btn-secondary:hover { background: #2980b9; }
+        .btn-purple { background: #9b59b6; color: white; }
+        .btn-purple:hover { background: #8e44ad; }
+        
+        .result-area {
+            margin-top: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: none;
+            font-family: monospace;
+            box-sizing: border-box;
+        }
+        .extra-fields {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GREEN-API Client</h1>
+        
+        <div class="input-group">
+            <label>idInstance:</label>
+            <input type="text" id="idInstance" placeholder="Введите idInstance">
+        </div>
+        
+        <div class="input-group">
+            <label>ApiTokenInstance:</label>
+            <input type="text" id="apiToken" placeholder="Введите ApiTokenInstance">
+        </div>
+        
+        <div class="buttons">
+            <button class="btn-primary" onclick="getSettings()">getSettings</button>
+            <button class="btn-primary" onclick="getStateInstance()">getStateInstance</button>
+            <button class="btn-secondary" onclick="showSendMessageFields()">sendMessage</button>
+            <button class="btn-purple" onclick="showSendFileFields()">sendFileByUrl</button>
+        </div>
+        
+        <div id="messageFields" class="extra-fields">
+            <div class="input-group">
+                <label>Номер телефона:</label>
+                <input type="text" id="phone" placeholder="79001234567">
+            </div>
+            <div class="input-group">
+                <label>Сообщение:</label>
+                <input type="text" id="message" placeholder="Текст сообщения">
+            </div>
+            <button class="btn-secondary" onclick="sendMessage()">Отправить</button>
+        </div>
+        
+        <div id="fileFields" class="extra-fields">
+            <div class="input-group">
+                <label>Номер телефона:</label>
+                <input type="text" id="phoneFile" placeholder="79001234567">
+            </div>
+            <div class="input-group">
+                <label>URL файла:</label>
+                <input type="text" id="fileUrl" placeholder="https://example.com/file.jpg">
+            </div>
+            <div class="input-group">
+                <label>Имя файла:</label>
+                <input type="text" id="fileName" placeholder="file.jpg">
+            </div>
+            <button class="btn-purple" onclick="sendFileByUrl()">Отправить файл</button>
+        </div>
+        
+        <div class="result-area">
+            <label>Результат:</label>
+            <textarea id="result" readonly placeholder="Здесь появится результат..."></textarea>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://api.green-api.com';
+
+        function getIdInstance() {
+            return document.getElementById('idInstance').value.trim();
+        }
+
+        function getApiToken() {
+            return document.getElementById('apiToken').value.trim();
+        }
+
+        function showResult(data) {
+            document.getElementById('result').value = JSON.stringify(data, null, 2);
+        }
+
+        async function apiRequest(method, endpoint, body = null) {
+            const idInstance = getIdInstance();
+            const apiToken = getApiToken();
+            
+            if (!idInstance || !apiToken) {
+                alert('Пожалуйста, введите idInstance и ApiTokenInstance');
+                return;
+            }
+
+            const url = `${API_URL}/waInstance${idInstance}/${endpoint}/${apiToken}`;
+            
+            const options = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            try {
+                const response = await fetch(url, options);
+                const data = await response.json();
+                showResult(data);
+            } catch (error) {
+                showResult({ error: error.message });
+            }
+        }
+
+        function getSettings() {
+            apiRequest('GET', 'getSettings');
+        }
+
+        function getStateInstance() {
+            apiRequest('GET', 'getStateInstance');
+        }
+
+        function showSendMessageFields() {
+            document.getElementById('messageFields').style.display = 'block';
+            document.getElementById('fileFields').style.display = 'none';
+        }
+
+        function showSendFileFields() {
+            document.getElementById('fileFields').style.display = 'block';
+            document.getElementById('messageFields').style.display = 'none';
+        }
+
+        function sendMessage() {
+            const phone = document.getElementById('phone').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            if (!phone || !message) {
+                alert('Введите номер телефона и сообщение');
+                return;
+            }
+
+            apiRequest('POST', 'sendMessage', {
+                chatId: phone + '@c.us',
+                message: message
+            });
+        }
+
+        function sendFileByUrl() {
+            const phone = document.getElementById('phoneFile').value.trim();
+            const fileUrl = document.getElementById('fileUrl').value.trim();
+            const fileName = document.getElementById('fileName').value.trim();
+            
+            if (!phone || !fileUrl || !fileName) {
+                alert('Заполните все поля');
+                return;
+            }
+
+            apiRequest('POST', 'sendFileByUrl', {
+                chatId: phone + '@c.us',
+                urlFile: fileUrl,
+                fileName: fileName
+            });
+        }
+    </script>
+</body>
+</html>
+```
+
+## Как использовать:
+
+1. **Сохрани код** в файл с расширением `.html` (например, `green-api.html`)
+2. **Открой файл** в браузере
+3. **Заполни параметры подключения**:
+   - `idInstance` — из личного кабинета GREEN-API
+   - `ApiTokenInstance` — из личного кабинета GREEN-API
+
+4. **Нажми на кнопки**:
+   - `getSettings` — получить настройки
+   - `getStateInstance` — получить статус инстанса
+   - `sendMessage` — отправить сообщение (появится форма для ввода номера и текста)
+   - `sendFileByUrl` — отправить файл по URL (появится форма для ввода номера, URL и имени файла)
+
+5. **Результат** появится в поле "Результат" внизу
+
+Всё работает через REST API GREEN-API. Нужна помощь с чем-то ещё?
